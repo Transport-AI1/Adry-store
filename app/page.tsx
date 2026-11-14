@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUpRight, ShoppingBag, Check, Menu, Minus, Plus, Search, X } from "lucide-react";
 
@@ -21,6 +21,13 @@ type CartLine = { product: Product; quantity: number };
 
 export default function Home() {
   const [active, setActive] = useState(0);
+  const [carouselPaused, setCarouselPaused] = useState(false);
+
+  useEffect(() => {
+    if (carouselPaused || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const timer = window.setInterval(() => setActive((current) => (current + 1) % products.length), 4800);
+    return () => window.clearInterval(timer);
+  }, [carouselPaused]);
   const [filter, setFilter] = useState("Todo");
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState("featured");
@@ -58,6 +65,7 @@ export default function Home() {
   return (
     <main>
       <div className="announcement"><span>UNA MIRADA PROPIA · RIVAS-VACIAMADRID, MADRID</span><span>DESCUBRE ALGO DIFERENTE</span></div>
+      <div className="demo-notice" role="status"><strong>WEB DE DEMOSTRACIÓN</strong><span>Imágenes y productos ilustrativos. Fotos y precios reales pendientes de confirmar con Adry Store. La tienda todavía no admite compras ni pagos.</span></div>
       <header className="site-header">
         <button className="icon-button mobile-menu" aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"} onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? <X /> : <Menu />}</button>
         <a className="wordmark" href="#inicio" aria-label="Adry Store, inicio">ADRY<span>STORE</span><i>®</i></a>
@@ -87,7 +95,7 @@ export default function Home() {
 
       <section className="spotlight" id="novedades">
         <div className="section-heading"><div><p className="eyebrow">01 / UNA PRIMERA MIRADA</p><h2>La pieza <em>protagonista.</em></h2></div><p>Un pequeño adelanto de lo que podría ser tu próxima historia favorita.</p></div>
-        <div className="spotlight-stage" onTouchStart={(event) => { (event.currentTarget as HTMLDivElement).dataset.touchX = String(event.touches[0].clientX); }} onTouchEnd={(event) => { const start = Number((event.currentTarget as HTMLDivElement).dataset.touchX || 0); const delta = event.changedTouches[0].clientX - start; if (Math.abs(delta) > 40) stepProduct(delta < 0 ? 1 : -1); }}>
+        <div className="spotlight-stage" onMouseEnter={() => setCarouselPaused(true)} onMouseLeave={() => setCarouselPaused(false)} onFocusCapture={() => setCarouselPaused(true)} onBlurCapture={() => setCarouselPaused(false)} onTouchStart={(event) => { (event.currentTarget as HTMLDivElement).dataset.touchX = String(event.touches[0].clientX); }} onTouchEnd={(event) => { const start = Number((event.currentTarget as HTMLDivElement).dataset.touchX || 0); const delta = event.changedTouches[0].clientX - start; if (Math.abs(delta) > 40) stepProduct(delta < 0 ? 1 : -1); }}>
           <span className="stage-index">SELECCIÓN DE ESTUDIO<br /><b>{String(active + 1).padStart(2, "0")} / {String(products.length).padStart(2, "0")}</b></span>
           <button className="round-arrow prev" aria-label="Producto anterior" onClick={() => stepProduct(-1)}><ArrowLeft /></button>
           <div className="floating-product" key={products[active].id}>
@@ -98,7 +106,7 @@ export default function Home() {
           <button className="round-arrow next" aria-label="Siguiente producto" onClick={() => stepProduct(1)}><ArrowRight /></button>
           <div className="stage-pagination">{products.map((product, index) => <button key={product.id} aria-label={`Ver producto ${index + 1}`} aria-current={active === index} onClick={() => setActive(index)} className={active === index ? "active" : ""} />)}</div>
         </div>
-        <p className="demo-disclaimer">Imágenes y nombres provisionales · Catálogo real próximamente</p>
+        <p className="demo-disclaimer">DEMO · Las imágenes, nombres y precios son provisionales y no representan el catálogo ni las tarifas definitivas de Adry Store.</p>
       </section>
 
       <section className="catalog" id="coleccion">
