@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUpRight, ShoppingBag, Check, Menu, Minus, Plus, Search, X } from "lucide-react";
+import { ArrowDown, ArrowRight, ArrowUpRight, ShoppingBag, Check, Menu, Minus, Pause, Play, Plus, Search, X } from "lucide-react";
 
 type Product = { id: string; name: string; category: string; price: number; image: string; description: string; tone: string };
 
@@ -25,7 +25,7 @@ export default function Home() {
 
   useEffect(() => {
     if (carouselPaused || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const timer = window.setInterval(() => setActive((current) => (current + 1) % products.length), 4800);
+    const timer = window.setInterval(() => setActive((current) => (current + 1) % products.length), 7200);
     return () => window.clearInterval(timer);
   }, [carouselPaused]);
   const [filter, setFilter] = useState("Todo");
@@ -58,10 +58,6 @@ export default function Home() {
     setCart((current) => current.map((line) => line.product.id === id ? { ...line, quantity: line.quantity + amount } : line).filter((line) => line.quantity > 0));
   }
 
-  function stepProduct(direction: number) {
-    setActive((current) => (current + direction + products.length) % products.length);
-  }
-
   return (
     <main>
       <div className="announcement"><span>UNA MIRADA PROPIA · RIVAS-VACIAMADRID, MADRID</span><span>DESCUBRE ALGO DIFERENTE</span></div>
@@ -81,39 +77,30 @@ export default function Home() {
           <h1>Encuentra eso<br />que habla <em>de ti.</em></h1>
           <p className="hero-description">Piezas especiales, detalles que importan y una forma de vestir que se siente como tú.</p>
           <a className="button-dark" href="#coleccion">Descubrir colección <ArrowUpRight /></a>
-          <div className="hero-foot"><span>01 — 06</span><span>Una selección en constante movimiento</span></div>
+          <div className="hero-foot"><span>{String(active + 1).padStart(2, "0")} — {String(products.length).padStart(2, "0")}</span><span>Selección de muestra · fotos reales pendientes</span></div>
         </div>
-        <div className="hero-visual">
-          <div className="hero-image-wrap"><Image src="/adry-editorial.png" alt="Editorial de moda en tonos naturales, imagen de inspiración para Adry Store" fill priority sizes="(max-width: 760px) 100vw, 50vw" className="hero-image" /></div>
-          <div className="hero-stamp"><span>ADRY</span><span>STORE</span><i>RIVAS · MADRID</i></div>
-          <span className="image-caption">ESTILO CON PERSONALIDAD <span>© ADRY STORE</span></span>
+        <div className="hero-visual hero-product-visual" id="novedades">
+          <div className="hero-carousel" aria-label="Carrusel automático de productos de muestra" aria-roledescription="carrusel">
+            <div className="carousel-topline"><span>SELECCIÓN DE ESTUDIO</span><button className="carousel-toggle" onClick={() => setCarouselPaused((paused) => !paused)} aria-label={carouselPaused ? "Reanudar carrusel" : "Pausar carrusel"}>{carouselPaused ? <Play aria-hidden="true" /> : <Pause aria-hidden="true" />}<span>{carouselPaused ? "REANUDAR" : "PAUSAR"}</span></button></div>
+            <div className="floating-product" key={products[active].id}>
+              <div className="floating-shadow" />
+              <div className="floating-image-shell" style={{ backgroundColor: products[active].tone }}><Image src={products[active].image} alt={`${products[active].name}, foto provisional; fotografía real pendiente`} fill priority sizes="(max-width: 760px) 76vw, 30vw" className="floating-image" /><span className="photo-pending">FOTO PROVISIONAL <i>FOTO REAL PENDIENTE</i></span></div>
+            </div>
+            <div className="hero-product-info" aria-live="off"><div><span>{products[active].category.toUpperCase()} · MUESTRA</span><h2>{products[active].name}</h2></div><b>€ {products[active].price.toFixed(2)}</b></div>
+            <div className="hero-carousel-progress" aria-hidden="true">{products.map((product, index) => <span key={product.id} className={active === index ? "active" : ""} />)}</div>
+          </div>
+          <p className="hero-product-caption">PRODUCTOS ILUSTRATIVOS · FOTOGRAFÍAS REALES PENDIENTES</p>
         </div>
-        <a className="scroll-cue" href="#novedades"><span>BAJA PARA DESCUBRIR</span><ArrowDown /></a>
+        <a className="scroll-cue" href="#coleccion"><span>BAJA PARA DESCUBRIR</span><ArrowDown /></a>
       </section>
 
       <section className="ticker" aria-label="Manifiesto de marca"><div className="ticker-track"><span>VÍSTETE A TU MANERA</span><i>✳</i><span>ENCUENTRA TU ESENCIA</span><i>✳</i><span>DETALLES QUE HABLAN</span><i>✳</i><span>VÍSTETE A TU MANERA</span><i>✳</i></div></section>
-
-      <section className="spotlight" id="novedades">
-        <div className="section-heading"><div><p className="eyebrow">01 / UNA PRIMERA MIRADA</p><h2>La pieza <em>protagonista.</em></h2></div><p>Un pequeño adelanto de lo que podría ser tu próxima historia favorita.</p></div>
-        <div className="spotlight-stage" onMouseEnter={() => setCarouselPaused(true)} onMouseLeave={() => setCarouselPaused(false)} onFocusCapture={() => setCarouselPaused(true)} onBlurCapture={() => setCarouselPaused(false)} onTouchStart={(event) => { (event.currentTarget as HTMLDivElement).dataset.touchX = String(event.touches[0].clientX); }} onTouchEnd={(event) => { const start = Number((event.currentTarget as HTMLDivElement).dataset.touchX || 0); const delta = event.changedTouches[0].clientX - start; if (Math.abs(delta) > 40) stepProduct(delta < 0 ? 1 : -1); }}>
-          <span className="stage-index">SELECCIÓN DE ESTUDIO<br /><b>{String(active + 1).padStart(2, "0")} / {String(products.length).padStart(2, "0")}</b></span>
-          <button className="round-arrow prev" aria-label="Producto anterior" onClick={() => stepProduct(-1)}><ArrowLeft /></button>
-          <div className="floating-product" key={products[active].id}>
-            <div className="floating-shadow" />
-            <div className="floating-image-shell" style={{ backgroundColor: products[active].tone }}><Image src={products[active].image} alt={`${products[active].name}, imagen de demostración`} fill sizes="(max-width: 760px) 75vw, 34vw" className="floating-image" /></div>
-          </div>
-          <div className="stage-product-info"><span className="eyebrow">{products[active].category.toUpperCase()} · DEMOSTRACIÓN</span><h3>{products[active].name}</h3><p>€ {products[active].price.toFixed(2)}</p><button className="text-link" onClick={() => addToCart(products[active])}>Añadir a la bolsa <ArrowUpRight /></button></div>
-          <button className="round-arrow next" aria-label="Siguiente producto" onClick={() => stepProduct(1)}><ArrowRight /></button>
-          <div className="stage-pagination">{products.map((product, index) => <button key={product.id} aria-label={`Ver producto ${index + 1}`} aria-current={active === index} onClick={() => setActive(index)} className={active === index ? "active" : ""} />)}</div>
-        </div>
-        <p className="demo-disclaimer">DEMO · Las imágenes, nombres y precios son provisionales y no representan el catálogo ni las tarifas definitivas de Adry Store.</p>
-      </section>
 
       <section className="catalog" id="coleccion">
         <div className="section-heading catalog-title"><div><p className="eyebrow">02 / EL UNIVERSO ADRY</p><h2>Descubre tu <em>favorito.</em></h2></div><span className="catalog-count">{String(visibleProducts.length).padStart(2, "0")} PIEZAS DE DEMOSTRACIÓN</span></div>
         <div className="catalog-controls"><div className="filter-list" aria-label="Filtrar por categoría">{categories.map((category) => <button key={category} onClick={() => setFilter(category)} className={filter === category ? "selected" : ""}>{category}</button>)}</div><div className="catalog-tools"><label className="search-field"><Search /><span className="sr-only">Buscar productos</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar" /></label><label className="sort-field"><span className="sr-only">Ordenar productos</span><select value={sort} onChange={(event) => setSort(event.target.value)}><option value="featured">Destacados</option><option value="low">Precio: menor a mayor</option><option value="high">Precio: mayor a menor</option></select></label></div></div>
         <div className="product-grid">{visibleProducts.map((product, index) => <article className="product-card" key={product.id}>
-          <button className="product-image-button" onClick={() => { setActive(products.findIndex((item) => item.id === product.id)); document.querySelector("#novedades")?.scrollIntoView({ behavior: "smooth" }); }} aria-label={`Ver ${product.name} en la selección protagonista`}><div className="product-image-wrap" style={{ backgroundColor: product.tone }}><Image src={product.image} alt={`${product.name}, imagen de demostración`} fill sizes="(max-width: 700px) 50vw, 25vw" className="product-image" /><span className="demo-tag">DEMO</span><span className="quick-view"><ArrowUpRight /></span></div></button>
+          <button className="product-image-button" onClick={() => { setActive(products.findIndex((item) => item.id === product.id)); document.querySelector(".hero-product-visual")?.scrollIntoView({ behavior: "smooth", block: "center" }); }} aria-label={`Ver ${product.name} en la selección protagonista`}><div className="product-image-wrap" style={{ backgroundColor: product.tone }}><Image src={product.image} alt={`${product.name}, foto provisional; fotografía real pendiente`} fill sizes="(max-width: 700px) 50vw, 25vw" className="product-image" /><span className="demo-tag">FOTO PROVISIONAL <i>FOTO REAL PENDIENTE</i></span><span className="quick-view"><ArrowUpRight /></span></div></button>
           <div className="product-meta"><div><span>{product.category}</span><h3>{product.name}</h3></div><b>€ {product.price.toFixed(2)}</b></div><button className="add-inline" onClick={() => addToCart(product)}>Añadir a la bolsa <Plus /></button><span className="product-order">0{index + 1}</span>
         </article>)}</div>
         {visibleProducts.length === 0 && <p className="empty-result">No encontramos piezas con ese nombre. Prueba otra búsqueda.</p>}
