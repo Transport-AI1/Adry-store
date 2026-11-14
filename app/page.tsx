@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { ArrowDown, ArrowRight, ArrowUpRight, ShoppingBag, Check, Menu, Minus, Pause, Play, Plus, Search, X } from "lucide-react";
+import { FaqAssistant } from "@/components/faq-assistant";
 
 type Product = { id: string; name: string; category: string; price: number; image: string; description: string; tone: string };
 
@@ -115,6 +116,7 @@ export default function Home() {
 
       {added && <div className="cart-feedback" role="status"><Check /> Añadido a tu bolsa <button aria-label="Abrir bolsa" onClick={() => setCartOpen(true)}>Ver bolsa</button></div>}
       {cartOpen && <div className="drawer-backdrop" onClick={() => setCartOpen(false)}><aside className="cart-drawer" aria-label="Tu bolsa" onClick={(event) => event.stopPropagation()}><div className="drawer-header"><div><p className="eyebrow">TU SELECCIÓN</p><h2>La bolsa <span>({cartCount})</span></h2></div><button className="icon-button" aria-label="Cerrar bolsa" onClick={() => setCartOpen(false)}><X /></button></div>{cart.length ? <><div className="cart-lines">{cart.map(({ product, quantity }) => <article className="cart-line" key={product.id}><div className="cart-thumb" style={{ backgroundColor: product.tone }}><Image src={product.image} alt="" fill sizes="80px" /></div><div className="cart-line-copy"><span>{product.category}</span><h3>{product.name}</h3><b>€ {(product.price * quantity).toFixed(2)}</b><div className="quantity-control"><button aria-label={`Quitar una unidad de ${product.name}`} onClick={() => changeQuantity(product.id, -1)}><Minus /></button><span>{quantity}</span><button aria-label={`Añadir una unidad de ${product.name}`} onClick={() => changeQuantity(product.id, 1)}><Plus /></button></div></div><button className="remove-line" onClick={() => setCart((current) => current.filter((line) => line.product.id !== product.id))}>Eliminar</button></article>)}</div><div className="cart-summary"><div><span>Subtotal de demostración</span><b>€ {subtotal.toFixed(2)}</b></div><p>Contenido provisional. No se procesan pagos ni pedidos.</p><button className="button-dark" onClick={() => setCartOpen(false)}>Seguir explorando <ArrowRight /></button></div></> : <div className="cart-empty"><ShoppingBag /><p>Tu bolsa está esperando<br />algo especial.</p><button className="text-link" onClick={() => setCartOpen(false)}>Descubrir la colección <ArrowRight /></button></div>}</aside></div>}
+      <FaqAssistant />
     </main>
   );
 }
